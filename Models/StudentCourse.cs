@@ -2,13 +2,15 @@
 {
     public class StudentCourse
     {
-            public int StudentId { get; set; }
-            public Student Student { get; set; }
+        public int StudentId { get; set; }
+        public StudentProfile Student { get; set; }
 
-            public int CourseId { get; set; }
-            public Course Course { get; set; }
+        public int CourseId { get; set; }
+        public Course Course { get; set; }
 
-            public int? Hours { get; set; }  // Custom per student-course
-      
+        public int? SemesterId { get; set; }  // Nullable to allow extra/non-semester courses
+        public Semester? Semester { get; set; }
+
+        public int? Hours { get; set; }
     }
 }

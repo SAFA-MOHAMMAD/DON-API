@@ -2,16 +2,26 @@
 {
     public class Course
     {
-        public int Id { get; set; }  // auto-incremented PK
+        public int Id { get; set; }  // Primary Key
+
         public string CourseCode { get; set; }  // e.g. "MATH101"
         public string CourseName { get; set; }  // e.g. "Calculus I"
         public string Department { get; set; }
-        public string? Semester { get; set; }
-        public string InstructorName { get; set; }
+
+        // Foreign Key to Semester (optional if course exists before being assigned a semester)
+        public int? SemesterId { get; set; }
+        public Semester Semester { get; set; }
+
+        // Foreign Key to Instructor
+        public int InstructorId { get; set; }
+        public InstructorProfile Instructor { get; set; }
+
         public int? Credits { get; set; }
         public string? Description { get; set; }
-        public string? Level { get; set; }
-        public TimeSpan? Duration { get; set; }
+        public string? Level { get; set; }  // e.g. Beginner, Intermediate, Advanced
+        public TimeSpan? Duration { get; set; }  // e.g. course total hours
+
         public ICollection<StudentCourse> StudentCourses { get; set; }
     }
+
 }

@@ -17,7 +17,7 @@ namespace DON.ViewModels
         [Required]
         public UserType UserType { get; set; }
 
-        public string? Department { get; set; }  // only for students
+        //public string? Department { get; set; }  // only for students
     }
 
 }

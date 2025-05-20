@@ -70,5 +70,26 @@ namespace DON.Controllers
 
             return BadRequest(ModelState);
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user == null)
+                return Unauthorized("Invalid username or password.");
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "Login successful", userId = user.Id, userType = user.UserType });
+            }
+
+            return Unauthorized("Invalid username or password.");
+        }
+
     }
 }

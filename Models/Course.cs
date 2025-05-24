@@ -20,7 +20,7 @@
         public string? Description { get; set; }
         public string? Level { get; set; }  // e.g. Beginner, Intermediate, Advanced
         public TimeSpan? Duration { get; set; }  // e.g. course total hours
-
+        public string? ImagePath { get; set; }
         public ICollection<StudentCourse> StudentCourses { get; set; }
     }
 

@@ -26,7 +26,7 @@ namespace DON.Controllers
         }
         [HttpPost]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] RegisterViewModel model)
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -70,6 +70,15 @@ namespace DON.Controllers
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
 
+            foreach (var key in ModelState.Keys)
+            {
+                var errors = ModelState[key].Errors;
+                foreach (var error in errors)
+                {
+                    Console.WriteLine($"{key}: {error.ErrorMessage}");
+                }
+            }
+
             return BadRequest(ModelState);
         }
 
@@ -89,8 +98,9 @@ namespace DON.Controllers
             {
                 return Ok(new { message = "Login successful",
                     userId = user.Id,
+                    userName = user.UserName,
                     userType = user.UserType,
-                    ImagePath = user.UserType == UserType.Student
+                    imagePath = user.UserType == UserType.Student
                     ? _context.StudentProfiles.FirstOrDefault(p => p.ApplicationUserId == user.Id)?.ImagePath
                     : _context.InstructorProfiles.FirstOrDefault(p => p.ApplicationUserId == user.Id)?.ImagePath
                 });

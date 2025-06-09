@@ -76,12 +76,48 @@ namespace DON.Controllers
         // POST: api/Courses
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Course>> PostCourse(Course course)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<Course>> PostCourse([FromForm] CourseDto dto)
         {
+            // Handle the image file
+            string imagePath = "/images/default-course.png";
+            if (dto.ImagePath?.Length > 0)
+            {
+                var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                Directory.CreateDirectory(uploads);
+
+                var fileName = Path.GetFileName(dto.ImagePath.FileName);
+                var fullPath = Path.Combine(uploads, fileName);
+                using var stream = new FileStream(fullPath, FileMode.Create);
+                await dto.ImagePath.CopyToAsync(stream);
+
+                imagePath = $"/images/{fileName}";
+            }
+
+            // Parse duration if provided
+            TimeSpan? duration = null;
+            if (!string.IsNullOrWhiteSpace(dto.Duration))
+                duration = TimeSpan.Parse(dto.Duration);
+
+            // Map to your entity
+            var course = new Course
+            {
+                CourseCode = dto.CourseCode,
+                CourseName = dto.CourseName,
+                Department = dto.Department,
+                InstructorId = dto.InstructorId,
+                SemesterId = dto.SemesterId,
+                Credits = dto.Credits,
+                Description = dto.Description,
+                Level = dto.Level,
+                Duration = duration,
+                ImagePath = imagePath
+            };
+
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCourse", new { id = course.Id }, course);
+            return CreatedAtAction(nameof(GetCourse), new { id = course.Id }, course);
         }
 
         // DELETE: api/Courses/5

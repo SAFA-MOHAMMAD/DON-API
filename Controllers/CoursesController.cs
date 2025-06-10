@@ -140,5 +140,98 @@ namespace DON.Controllers
         {
             return _context.Courses.Any(e => e.Id == id);
         }
+
+
+        /// <summary>
+        /// Gets all courses taught by a specific instructor.
+        /// </summary>
+        /// <param name="instructorId">The ID of the instructor.</param>
+        /// <returns>A list of courses.</returns>
+        [HttpGet("byInstructor/{instructorId}")]
+        public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByInstructor(int instructorId)
+        {
+            // Check if the instructor exists (optional, but good practice)
+            var instructorExists = await _context.InstructorProfiles.AnyAsync(i => i.Id == instructorId);
+            if (!instructorExists)
+            {
+                return NotFound($"Instructor with ID {instructorId} not found.");
+            }
+
+            // Retrieve courses for the specified instructor
+            var courses = await _context.Courses
+                                        .Where(c => c.InstructorId == instructorId)
+                                        .ToListAsync();
+
+            if (!courses.Any())
+            {
+                return NotFound($"No courses found for instructor with ID {instructorId}.");
+            }
+
+            return Ok(courses);
+        }
+
+        /// <summary>
+        /// Gets all courses taught by a specific instructor using their ApplicationUser ID.
+        /// </summary>
+        /// <param name="applicationUserId">The ApplicationUser ID (string GUID) of the instructor.</param>
+        /// <returns>A list of courses.</returns>
+        [HttpGet("byApplicationUser/{applicationUserId}")] // Changed route name to be explicit
+        public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByApplicationUserId(string applicationUserId)
+        {
+            // 1. Find the InstructorProfile associated with the given ApplicationUserId
+            var instructorProfile = await _context.InstructorProfiles
+                                                .FirstOrDefaultAsync(ip => ip.ApplicationUserId == applicationUserId);
+
+            if (instructorProfile == null)
+            {
+                return NotFound($"Instructor profile not found for ApplicationUser ID: {applicationUserId}.");
+            }
+
+            // 2. Use the found InstructorProfile's Id to retrieve courses
+            var courses = await _context.Courses
+                                        .Where(c => c.InstructorId == instructorProfile.Id)
+                                        .ToListAsync();
+
+            if (!courses.Any())
+            {
+                return NotFound($"No courses found for instructor with ApplicationUser ID {applicationUserId}.");
+            }
+
+            return Ok(courses);
+        }
+
+
+        /// <summary>
+        /// Gets all courses enrolled by a specific student using their ApplicationUser ID.
+        /// </summary>
+        /// <param name="applicationUserId">The ApplicationUser ID (string GUID) of the student.</param>
+        /// <returns>A list of courses the student is enrolled in.</returns>
+        [HttpGet("byStudentApplicationUser/{applicationUserId}")] // New route for students
+        public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByStudentApplicationUserId(string applicationUserId)
+        {
+            // 1. Find the StudentProfile associated with the given ApplicationUserId
+            var studentProfile = await _context.StudentProfiles
+                                             .FirstOrDefaultAsync(sp => sp.ApplicationUserId == applicationUserId);
+
+            if (studentProfile == null)
+            {
+                return NotFound($"Student profile not found for ApplicationUser ID: {applicationUserId}.");
+            }
+
+            // 2. Use the found StudentProfile's Id to retrieve courses through StudentCourse
+            var courses = await _context.StudentCourses
+                                        .Where(sc => sc.StudentId == studentProfile.Id)
+                                        .Select(sc => sc.Course) // Select the actual Course object
+                                        .ToListAsync();
+
+            if (!courses.Any())
+            {
+                // It's possible a student has no courses enrolled yet
+                return Ok(new List<Course>()); // Return empty list instead of NotFound if student exists but no courses
+            }
+
+            return Ok(courses);
+        }
+
     }
 }
